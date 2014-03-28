@@ -4,7 +4,7 @@ using System.Collections;
 public class NetworkManager : MonoBehaviour {
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		MasterServer.ipAddress = "localhost";
 		MasterServer.port = 23466;
 		MasterServer.RequestHostList ("2199_Luke");
@@ -12,20 +12,24 @@ public class NetworkManager : MonoBehaviour {
 
 	void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.Space)) 
-		{
+		if (Input.GetKeyDown (KeyCode.Space)) {
 			HostData[] data = MasterServer.PollHostList();
-			if (data.Length >= 1)
-			Network.Connect(data[0]);
-			Debug.Log(data);
-			Debug.Log("connected to the Server Hopefully");
+			if (data.Length >= 1){
+				Network.Connect (data [0]);
+				Debug.Log("Server Connected");
+				Debug.Log (data);
+			}
+		} else if (Input.GetKeyDown (KeyCode.C)) {
+			GameObject.FindGameObjectWithTag("gameserver").GetComponent<GameServer>().CreateServer();
+		} else if (Input.GetKeyDown (KeyCode.E)) {
+			networkView.RPC("ServerRotate", RPCMode.Server, GameObject.Find("Player Me").GetComponent<Player>().getNum());
 		}
 	}
 
 	[RPC] void setPlayerNumber(int number, int opponent)
 	{
-		GameObject.FindGameObjectWithTag("player_me").tag = "player_" + number;
-		GameObject.FindGameObjectWithTag("player_opponent").tag = "player_" + opponent;
+		GameObject.Find("Player Me").GetComponent<Player>().setNum(number);
+		GameObject.Find("Player Opponent").GetComponent<Player>().setNum(opponent);
 		Debug.Log("Player Numbers Set");
 	}
 
