@@ -8,22 +8,30 @@ public class GameServer : MonoBehaviour {
 		Network.InitializeServer(32, 25002, !Network.HavePublicAddress());
 		MasterServer.RegisterHost("2199_Luke", "Test Game");
 		Debug.Log ("Server Started");
+		Network.AllocateViewID();
 	}
 
 	// Use this for initialization
 	void Start () {
-	
+		ArrayList test = new ArrayList();
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 
-	[RPC] void ServerRotate(int number)
+	void OnPlayerConnected(NetworkPlayer player) {
+ 		Debug.Log(player.ipAddress);
+		networkView.RPC ("setPlayerNumber", player, 0, 2);
+	}
+
+	[RPC]
+	void Rotate(int number)
 	{
-		networkView.RPC ("Rotate", RPCMode.All, number);
+		networkView.RPC ("Rotate", RPCMode.All, 0);
 	}
 
-
+	[RPC] void setPlayerNumber(int number, int opponent) {}
 }
