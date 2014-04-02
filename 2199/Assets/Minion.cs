@@ -33,6 +33,11 @@ public class Minion : MonoBehaviour {
 		return true;
 	}
 
+	public int getHealth()
+	{
+		return health;
+	}
+
 	/*
 	 * Modify the Damage of a minion
 	 * params:
@@ -46,4 +51,11 @@ public class Minion : MonoBehaviour {
 		damage += amount;
 		return true;
 	}
+
+	public int getDamage()
+	{
+		return damage;
+	}
+
+
 }

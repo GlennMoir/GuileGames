@@ -1,43 +1,145 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Net.Sockets;
+using System;
 
 public class NetworkManager : MonoBehaviour {
 
+	/* 
+	 * Minion Card played = 'a'
+	 * Minion Card updated = 'b'
+	 * Combat command = 'c'
+	 * Buff card played = 'd'
+	 * Tactics card played = 'e'
+	 */
+
+	Socket client;
+
+	float countdown = 1.0f;
+
+	byte[] dataBuffer;
+
 	// Use this for initialization
 	void Awake () {
-		MasterServer.ipAddress = "localhost";
-		MasterServer.port = 23466;
+		//client = new TcpClient("localhost", 1234).Client;
 	}
 
 	void Update()
 	{
-		if (Input.GetKeyDown (KeyCode.P)) {
-			MasterServer.RequestHostList ("2199_Luke");
-		} else if (Input.GetKeyDown (KeyCode.Space)) {
-			HostData[] data = MasterServer.PollHostList();
-			if (data.Length >= 1){
-				Network.Connect (data [0]);
-				Network.AllocateViewID();
+		/*
+		countdown -= Time.deltaTime;
+		if (countdown >= 0.0){
+			if (client.Available != 0)
+			{
+				byte[] data = new byte[client.Available];
+				client.Receive(data);
+
+				ArrayList listData = new ArrayList();
+				listData.AddRange(data);
+
+				parseData (data);
 			}
-		} else if (Input.GetKeyDown (KeyCode.C)) {
-			GameObject.FindGameObjectWithTag("gameserver").GetComponent<GameServer>().CreateServer();
-		} else if (Input.GetKeyDown (KeyCode.E)) {
-			networkView.RPC("Rotate", RPCMode.Server, GameObject.Find("Player Me").GetComponent<Player>().getNum());
+			countdown = 1.0f;
 		}
 	}
 
-	[RPC]
-	void setPlayerNumber(int number, int opponent)
+	void parseData(byte[] data)
 	{
-		GameObject.Find("Player Me").GetComponent<Player>().setNum(number);
-		GameObject.Find("Player Opponent").GetComponent<Player>().setNum(opponent);
-		Debug.Log("Player Numbers Set");
+		byte[] packet = new byte[5];
+
+		byte[] remainder = new byte[data.Length];
+
+		if(data.Length >= 5)
+		{
+			int i = 0;
+
+			while (i <= data.Length)
+			{
+				if (i < 5)
+				{
+					packet[i] = data[i];
+				}
+				else
+				{
+
+				}
+			}
+
+		}
+		else
+		{
+
+		}
+
+
+
+
+		Player play1 = GameObject.FindGameObjectWithTag("player_0").GetComponent<Player>();
+		Player play2 = GameObject.FindGameObjectWithTag("player_1").GetComponent<Player>();
+
+		Player me = GameObject.Find("Player Me").GetComponent<Player>();
+		Player opponent = GameObject.Find("Player Opponent").GetComponent<Player>();
+
+		switch (Convert.ToChar(packet[0])){
+		case 'a':
+			// pull card ID out of data[1]
+			// pull position out of data[2]
+
+			opponent.playMinion(packet[1], packet[2]);
+
+			break;
+		case 'b':
+			// pull player number out of data[1]
+			// pull card position out of data[2]
+			// pull data value out of data[3]
+			// pull changed value out of data[4]
+
+			GameObject.FindGameObjectWithTag("player_" + packet[1]).GetComponent<Player>().changeMinion(packet[2], packet[3], packet[4]);
+
+			break;
+		case 'c':
+			// Perform end of turn combat.
+
+			play1.Rotate();
+			play2.Rotate();
+
+			play1.resolveTactics();
+			play2.resolveTactics();
+
+			Minion active1 = play1.getActiveCard();
+			Minion active2 = play2.getActiveCard();
+
+			active1.modifyHealth(-active2.getDamage());
+			active2.modifyHealth(-active1.getDamage());
+
+			break;
+		case 'd':
+			// pull card id out of data[1]
+			// pull position out of data[2]
+
+			opponent.playBuff(packet[1], packet[2]);
+
+			break;
+		case 'e':
+			// pull card id out of data[1]
+
+			opponent.playTactics(packet[1]);
+
+			break;
+		case 'z':
+			// this is the end of the packet, ready to move into the next.
+
+			break;
+		default:
+
+			break;
+		}
+*/
 	}
 
-	[RPC]
-	void Rotate(int player)
+	public void sendUpdate(byte[] data)
 	{
-		GameObject.FindGameObjectWithTag("player_" + player).GetComponent<Player>().Rotate();
-		Debug.Log("Boards rotated");
+		client.Send(data);
 	}
+	
 }

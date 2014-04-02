@@ -17,11 +17,6 @@ public class Player : MonoBehaviour {
 
 	}
 
-	public void Rotate()
-	{
-
-	}
-
 	public void setNum(int number)
 	{
 		gameObject.tag = "player_" + number;
@@ -32,4 +27,40 @@ public class Player : MonoBehaviour {
 	{
 		return player_number;
 	}
+
+	public void Rotate()
+	{
+		
+	}
+
+	public void resolveTactics()
+	{
+
+	}
+
+	public Minion getActiveCard()
+	{
+		return null;
+	}
+
+	public void playMinion(int cardID, int position)
+	{
+
+	}
+
+	public void changeMinion(int position, int stat, int value)
+	{
+
+	}
+
+	public void playBuff(int cardID, int position)
+	{
+
+	}
+
+	public void playTactics(int cardID)
+	{
+
+	}
+
 }
