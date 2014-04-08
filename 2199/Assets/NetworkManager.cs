@@ -1,132 +1,145 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Net.Sockets;
+using System;
 
 public class NetworkManager : MonoBehaviour {
 
-	
-	private string typeName = "UniqueGameNameGlenn";
-	private string gameName = "RoomName";
-	private HostData[] hostList;
-	
-	public GameObject minion1;
-	public GameObject minion2;
-	public GameObject minion3;
-	public GameObject minion4;
-	
+	/* 
+	 * Minion Card played = 'a'
+	 * Minion Card updated = 'b'
+	 * Combat command = 'c'
+	 * Buff card played = 'd'
+	 * Tactics card played = 'e'
+	 */
 
-	public GameObject minion1_p2;
-	public GameObject minion2_p2;
-	public GameObject minion3_p2;
-	public GameObject minion4_p2;
-	
-	public Vector3 slotOnePosition = new Vector3(0,0,0);
-	public Vector3 slotTwoPosition = new Vector3(0,0,0);
-	public Vector3 slotThreePosition = new Vector3(0,0,0);
-	public Vector3 slotFourPosition = new Vector3(0,0,0);
-	
-	public Vector3 slotOnePosition_p2 = new Vector3(0,0,0);
-	public Vector3 slotTwoPosition_p2 = new Vector3(0,0,0);
-	public Vector3 slotThreePosition_p2 = new Vector3(0,0,0);
-	public Vector3 slotFourPosition_p2 = new Vector3(0,0,0);
-	
-	private GameObject slotOne;
-	private GameObject slotTwo;
-	private GameObject slotThree;
-	private GameObject slotFour;
-	
-	private GameObject slotOne_p2;
-	private GameObject slotTwo_p2;
-	private GameObject slotThree_p2;
-	private GameObject slotFour_p2;
- 
-	private void StartServer()
-	{
-	    Network.InitializeServer(4, 25000, !Network.HavePublicAddress());
-	    MasterServer.RegisterHost(typeName, gameName);
-	}
-	
-	void OnServerInitialized()
-	{
-	    SpawnCards();
+	Socket client;
+
+	float countdown = 1.0f;
+
+	byte[] dataBuffer;
+
+	// Use this for initialization
+	void Awake () {
+		//client = new TcpClient("localhost", 1234).Client;
 	}
 
-	private void RefreshHostList()
+	void Update()
 	{
-	    MasterServer.RequestHostList(typeName);
-	}
-	 
-	void OnMasterServerEvent(MasterServerEvent msEvent)
-	{
-	    if (msEvent == MasterServerEvent.HostListReceived)
-	        hostList = MasterServer.PollHostList();
-	}
-	
-	private void JoinServer(HostData hostData)
-	{
-	    Network.Connect(hostData);
-	}
-	 
-	void OnConnectedToServer()
-	{
-	    SpawnCards();
-	}
-	
-	private void SpawnCards()
-	{
-		slotOne = GameObject.FindGameObjectWithTag("Slot_1");
-		slotTwo = GameObject.FindGameObjectWithTag("Slot_2");
-		slotThree = GameObject.FindGameObjectWithTag("Slot_3");
-		slotFour = GameObject.FindGameObjectWithTag("Slot_4");
-		
-		slotOnePosition = slotOne.transform.position;
-		slotTwoPosition = slotTwo.transform.position;
-		slotThreePosition = slotThree.transform.position;
-		slotFourPosition = slotFour.transform.position;
-		
-		slotOne_p2 = GameObject.FindGameObjectWithTag("Slot_1_p2");
-		slotTwo_p2 = GameObject.FindGameObjectWithTag("Slot_2_p2");
-		slotThree_p2 = GameObject.FindGameObjectWithTag("Slot_3_p2");
-		slotFour_p2 = GameObject.FindGameObjectWithTag("Slot_4_p2");
-		
-		slotOnePosition_p2 = slotOne_p2.transform.position;
-		slotTwoPosition_p2 = slotTwo_p2.transform.position;
-		slotThreePosition_p2 = slotThree_p2.transform.position;
-		slotFourPosition_p2 = slotFour_p2.transform.position;
-		
-		if(Network.isServer){
-		    Network.Instantiate(minion1, slotOne.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion2, slotTwo.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion3, slotThree.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion4, slotFour.transform.position, Quaternion.identity, 0);
-		}
-		
-		if(Network.isClient){
-		    Network.Instantiate(minion1_p2, slotOne_p2.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion2_p2, slotTwo_p2.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion3_p2, slotThree_p2.transform.position, Quaternion.identity, 0);
-			Network.Instantiate(minion4_p2, slotFour_p2.transform.position, Quaternion.identity, 0);
+		/*
+		countdown -= Time.deltaTime;
+		if (countdown >= 0.0){
+			if (client.Available != 0)
+			{
+				byte[] data = new byte[client.Available];
+				client.Receive(data);
+
+				ArrayList listData = new ArrayList();
+				listData.AddRange(data);
+
+				parseData (data);
+			}
+			countdown = 1.0f;
 		}
 	}
-	
-	void OnGUI()
+
+	void parseData(byte[] data)
 	{
-	    if (!Network.isClient && !Network.isServer)
-	    {
-	        if (GUI.Button(new Rect(100, 100, 250, 100), "Start Server"))
-	            StartServer();
-	 
-	        if (GUI.Button(new Rect(100, 250, 250, 100), "Refresh Hosts"))
-	            RefreshHostList();
-	 
-	        if (hostList != null)
-	        {
-	            for (int i = 0; i < hostList.Length; i++)
-	            {
-	                if (GUI.Button(new Rect(400, 100 + (110 * i), 300, 100), hostList[i].gameName))
-	                    JoinServer(hostList[i]);
-	            }
-	        }
-	    }
+		byte[] packet = new byte[5];
+
+		byte[] remainder = new byte[data.Length];
+
+		if(data.Length >= 5)
+		{
+			int i = 0;
+
+			while (i <= data.Length)
+			{
+				if (i < 5)
+				{
+					packet[i] = data[i];
+				}
+				else
+				{
+
+				}
+			}
+
+		}
+		else
+		{
+
+		}
+
+
+
+
+		Player play1 = GameObject.FindGameObjectWithTag("player_0").GetComponent<Player>();
+		Player play2 = GameObject.FindGameObjectWithTag("player_1").GetComponent<Player>();
+
+		Player me = GameObject.Find("Player Me").GetComponent<Player>();
+		Player opponent = GameObject.Find("Player Opponent").GetComponent<Player>();
+
+		switch (Convert.ToChar(packet[0])){
+		case 'a':
+			// pull card ID out of data[1]
+			// pull position out of data[2]
+
+			opponent.playMinion(packet[1], packet[2]);
+
+			break;
+		case 'b':
+			// pull player number out of data[1]
+			// pull card position out of data[2]
+			// pull data value out of data[3]
+			// pull changed value out of data[4]
+
+			GameObject.FindGameObjectWithTag("player_" + packet[1]).GetComponent<Player>().changeMinion(packet[2], packet[3], packet[4]);
+
+			break;
+		case 'c':
+			// Perform end of turn combat.
+
+			play1.Rotate();
+			play2.Rotate();
+
+			play1.resolveTactics();
+			play2.resolveTactics();
+
+			Minion active1 = play1.getActiveCard();
+			Minion active2 = play2.getActiveCard();
+
+			active1.modifyHealth(-active2.getDamage());
+			active2.modifyHealth(-active1.getDamage());
+
+			break;
+		case 'd':
+			// pull card id out of data[1]
+			// pull position out of data[2]
+
+			opponent.playBuff(packet[1], packet[2]);
+
+			break;
+		case 'e':
+			// pull card id out of data[1]
+
+			opponent.playTactics(packet[1]);
+
+			break;
+		case 'z':
+			// this is the end of the packet, ready to move into the next.
+
+			break;
+		default:
+
+			break;
+		}
+*/
+	}
+
+	public void sendUpdate(byte[] data)
+	{
+		client.Send(data);
 	}
 	
 }
