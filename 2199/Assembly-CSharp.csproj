@@ -46,23 +46,11 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Minion.cs" />
-     <Compile Include="Assets\NetworkManager.cs" />
-     <Compile Include="Assets\Player.cs" />
-     <None Include="Assets\RAIN\releasenotes.txt" />
-     <None Include="Assets\RAIN\Editor\ScriptTemplates\BehaviorTreeTemplate.xml" />
- <Reference Include="RAINIndie">
- <HintPath>Assets\RAIN\RAINIndie.dll</HintPath>
- </Reference>
- <Reference Include="Recast">
- <HintPath>Assets\RAIN\Recast.dll</HintPath>
- </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{30691BFC-BA3A-F52C-17E9-0DB6BC846D46}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
-    <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{2C5C9014-6B09-D4BA-45A3-F1DDE17E3B75}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
+     <Compile Include="Assets\Scripts\Resources\Buffs.cs" />
+     <Compile Include="Assets\Scripts\Resources\Minion.cs" />
+     <Compile Include="Assets\Scripts\Resources\NetworkManager.cs" />
+     <Compile Include="Assets\Scripts\Resources\Player.cs" />
+     <Compile Include="Assets\Scripts\Resources\Tactic.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
